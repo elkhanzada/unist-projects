@@ -11,7 +11,7 @@ declaration.
 ```c++
 void sort(int* numbers)
 ```
-``` numbers ```: Numbers you need to sort in increasing order.
+``` numbers ``` Numbers you need to sort in increasing order.
 
 Implement the function body. It should rearrange the integers so that they are
 in increasing order.

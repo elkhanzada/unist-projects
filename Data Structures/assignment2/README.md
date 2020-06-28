@@ -35,34 +35,34 @@ First, you need to implement Class ```LinkedList``` in ```list.h```. Class Node 
 already implemented for you. Here is a description of functions you need to
 implement.
 
-Class ```List:```
+Class ```List```
 \
 ```LinkedList():``` constructor
 \
-```~LinkedList():``` destructor
+```~LinkedList()``` destructor
 \
-```T& front():``` access the first element
+```T& front()``` access the first element
 \
-```T& back():``` access the last element
+```T& back()``` access the last element
 \
-```bool empty():``` check whether the container is empty
+```bool empty()``` check whether the container is empty
 \
-```int size():``` return the number of elements
+```int size()``` return the number of elements
 \
-```void insert(Node<T>* node_before, type val):``` create a
+```void insert(Node<T>* node_before, type val)``` create a
 node with the element and insert it after ```node_before```
 \
-```void erase(Node<T>* target):``` erase an element
+```void erase(Node<T>* target)``` erase an element
 \
-```void push_front(T val):``` add an element at the front
+```void push_front(T val)``` add an element at the front
 \
-```void pop_front():``` erase the first element
+```void pop_front()``` erase the first element
 \
-```void push_back(T val):``` add an element at the back
+```void push_back(T val)``` add an element at the back
 \
-```void pop_back():``` erase the last element
+```void pop_back()``` erase the last element
 \
-```Node<T>* find(T val):``` find an element of item val
+```Node<T>* find(T val)``` find an element of item val
 ## 2. Implementing FIFO policy with array and list (30 pts)
 You need to implement classes ```ListQueue``` and ```ArrayQueue``` in
 ```list_queue.h``` and ```array_queue.h```, respectively. In ```ListQueue```, you
@@ -77,16 +77,16 @@ Constructor ```ArrayQueue()/ListQueue()```
 \
 Destructor ```~ArrayQueue()/~ListQueue()```
 \
-```void push(const type& item):``` push an element to the
+```void push(const type& item)``` push an element to the
 container
 \
-```type& front():``` return the first element in the container
+```type& front()``` return the first element in the container
 \
-```void pop():``` delete the first element in the container
+```void pop()``` delete the first element in the container
 \
-```bool empty():``` check whether the container is empty
+```bool empty()``` check whether the container is empty
 \
-```int size():``` return the number of elements currently stored
+```int size()``` return the number of elements currently stored
 ## 3. Implementing LIFO policy with array and list (30 pts)
 You need to implement classes ```ListStack``` and ```ArrayStack``` in
 ```list_stack.h``` and ```array_stack.h```, respectively. In ```ListStack```, you
@@ -101,29 +101,29 @@ Constructor ```ListStack()/ArrayStack()```
 \
 Destructor ```~ListStack()/~ArrayStack()```
 \
-```void push(const type& item):``` push an element to the
+```void push(const type& item)``` push an element to the
 container
 \
-```type& top():``` return the top element in the container
+```type& top()``` return the top element in the container
 \
-```void pop():``` delete the element at the top
+```void pop()``` delete the element at the top
 \
-```bool empty():``` return true if the container is empty
+```bool empty()``` return true if the container is empty
 \
-```int size():``` return the number of elements currently stored
+```int size()``` return the number of elements currently stored
 ## 4. Analysis of array and list implementation (10 pts)
 You need to submit report on the performance analysis (and/or measurement)
 of array and list implementations. Please submit the report in pdf format on
 Blackboard as before.
 Your report must include at least the following:
 
-1. Basic description of your implementation.
+* Basic description of your implementation.
 \
-2. Difference between two implementations of LIFO and FIFO
+* Difference between two implementations of LIFO and FIFO
 \
-2 a) . e.g. Array implementation is slower when inserting, because …
+  * e.g. Array implementation is slower when inserting, because …
 \
-2 b). show performance measurement number if applicable
+  * show performance measurement number if applicable
 \
 
 Your report should be no longer than 3 pages.
