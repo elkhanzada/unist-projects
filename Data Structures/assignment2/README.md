@@ -118,12 +118,12 @@ Blackboard as before.
 Your report must include at least the following:
 
 * Basic description of your implementation.
-\
+
 * Difference between two implementations of LIFO and FIFO
-\
+
   * e.g. Array implementation is slower when inserting, because …
-\
+
   * show performance measurement number if applicable
-\
+
 
 Your report should be no longer than 3 pages.
