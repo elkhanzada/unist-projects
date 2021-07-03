@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <title>Exercise-3</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin=""/> 
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <div id="mapid" style="height: 500px; width: 1200px;">
+      
+    </div>
+    <p>You can pick a date to update the map to show total cases up to a chosen date</p>
+    <label for="start">Pick a Date:</label>
+    <input type="date" id="start" name="trip-start"
+       value="2021-05-24" onchange="changeMap(this)">
+    <br> <br> <br> <br> <br> <br> <br> <br>
+    <p>You can pick a country to update following graphs. It will show new death and new cases trend for chosen country.</p>
+    <p>The default is to show deaths by all countries and top 10 countries (<strong>United States, India, Brazil, France, Turkey, Russia, United Kingdom, Italy, Argentina, Colombia</strong>) with most visible new cases trend.</p>
+    <label for="country">Pick a Country: </label>
+    <select name="country" id="country">
+       </select>
+       <div id="canvas">
+
+      </div>
+  </body>
+    <script>
+        limit = 4000000
+        var myGeo;
+        var dateValue = "2021-05-24";
+        function getColor(d) {
+        return d > limit ? '#99000d' :
+             d > limit/2  ? '#cb181d' :
+             d > limit/4 ? '#ef3b2c' :
+             d > limit/8  ? '#fb6a4a' :
+             d > limit/16   ? '#fc9272' :
+             d > limit/32   ? '#fcbba1' :
+             d > limit/64   ? '#fee0d2' :
+                              '#fff5f0';
+                            
+      }
+      function changeMap(input){
+        mymap.remove()
+        dateValue = input.value
+        callForChange(dateValue)
+      }
+      function callForChange(dateValue){
+        mymap = L.map('mapid').setView([0, 0], 2);
+        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZWxraGFuemFkYSIsImEiOiJja3A5emNzamEwbGhkMndvMWI4a3JraG5mIn0.7v7MwU2Gyo5ryYulKO8rOQ', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'your.mapbox.access.token'
+        }).addTo(mymap);
+        d3.csv("owid-covid-data.csv")
+          .then(covidData=>{
+            totalConfirmed = {}
+            covidData.forEach(element => {
+              totalConfirmed[element["iso_code"]] = {}
+            });
+
+            covidData.forEach(element => {
+              totalConfirmed[element["iso_code"]][element["date"]] = parseInt(element["total_cases"])
+            });
+            d3.json("countries.geo.json")
+            .then(data=>{
+              data["features"].forEach(element => {
+                if(totalConfirmed[element["id"]]!==undefined)
+                element["properties"]["total_cases"] = totalConfirmed[element["id"]][dateValue]
+              });
+             myGeo = L.geoJson(data["features"], {
+                      style: function(feature) {
+                           return {
+                                    fillColor: getColor(feature.properties.total_cases),
+                                    weight: 2,
+                                    opacity: 1,
+                                    color: 'white',
+                                    dashArray: '3',
+                                    fillOpacity: 0.7
+                           };
+                                 
+                        },
+                        onEachFeature: function(feature,layer){
+                          layer.on({
+                                     mouseover: highlightFeature,
+                                      mouseout: resetHighlight,
+                                      click: zoomToFeature
+                                    });
+                        }
+    }
+).addTo(mymap); 
+            })
+            
+          })
+          var legend = L.control({position: 'bottomright'});
+
+        legend.onAdd = function (map) {
+                  var div = L.DomUtil.create('div', 'info legend'),
+                  limits = [0,limit/64, limit/32, limit/16, limit/8, limit/4, limit/2, limit],
+                  labels = [];
+                  for (var i = 0; i < limits.length; i++) {
+                    div.innerHTML +=
+                               '<i style="background:' + getColor(limits
+                 [i] + 1) + '"></i> ' +
+                                 limits
+              [i] + (limits
+              [i + 1] ? '&ndash;' + limits
+              [i + 1] + '<br>' : '+');
+                    }
+
+    return div;
+};
+    legend.addTo(mymap)
+    info = L.control();
+
+    info.onAdd = function (map) {
+           this._div = L.DomUtil.create('div', 'info'); 
+           this.update();
+           return this._div;
+      };
+
+info.update = function (props) {
+    this._div.innerHTML = '<h4>Total confirmed cases</h4>' +  (props ?
+        '<b>' + props.name + '</b><br />' + props.total_cases + ' cases'
+        : 'Hover over a country');
+};
+
+info.addTo(mymap);
+      }
+      d3.csv("owid-covid-data.csv")
+        .then(data=>{
+          dateValue = data[data.length-1]["date"];
+          var dateControl = document.querySelector('#start');
+          dateControl.value = data[data.length-1]["date"];
+          dateControl.min = "2020-01-22";
+          dateControl.max = data[data.length-1]["date"]
+          countries = {}
+          var first = $("<option>").attr("value","all").html("All")
+          $("#country").append(first)
+          data.forEach(element => {
+            if(!element["iso_code"].includes("OWID")){
+              if(!(element["location"] in countries)){
+                  var option = $("<option>").attr("value",element["location"]).html(element["location"])
+                  countries[element["location"]]=1;
+                  $("#country").append(option)
+              }
+            }
+          });
+        })
+        var mymap = L.map('mapid').setView([0, 0], 2);
+        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZWxraGFuemFkYSIsImEiOiJja3A5emNzamEwbGhkMndvMWI4a3JraG5mIn0.7v7MwU2Gyo5ryYulKO8rOQ', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'your.mapbox.access.token'
+        }).addTo(mymap);
+         
+        d3.csv("owid-covid-data.csv")
+          .then(covidData=>{
+            totalConfirmed = {}
+            covidData.forEach(element => {
+              totalConfirmed[element["iso_code"]] = {}
+            });
+
+            covidData.forEach(element => {
+              totalConfirmed[element["iso_code"]][dateValue] = parseInt(element["total_cases"])
+            });
+            console.log(totalConfirmed)
+            d3.json("countries.geo.json")
+            .then(data=>{
+              data["features"].forEach(element => {
+                if(totalConfirmed[element["id"]]!==undefined)
+                element["properties"]["total_cases"] = totalConfirmed[element["id"]][dateValue]
+              });
+             myGeo = L.geoJson(data["features"], {
+                      style: function(feature) {
+                           return {
+                                    fillColor: getColor(feature.properties.total_cases),
+                                    weight: 2,
+                                    opacity: 1,
+                                    color: 'white',
+                                    dashArray: '3',
+                                    fillOpacity: 0.7
+                           };
+                                 
+                        },
+                        onEachFeature: function(feature,layer){
+                          layer.on({
+                                     mouseover: highlightFeature,
+                                      mouseout: resetHighlight,
+                                      click: zoomToFeature
+                                    });
+                        }
+    }
+).addTo(mymap); 
+            }) 
+            
+          })
+          var legend = L.control({position: 'bottomright'});
+
+        legend.onAdd = function (map) {
+                  var div = L.DomUtil.create('div', 'info legend'),
+                  limits = [0,limit/64, limit/32, limit/16, limit/8, limit/4, limit/2, limit],
+                  labels = [];
+                  for (var i = 0; i < limits.length; i++) {
+                    div.innerHTML +=
+                               '<i style="background:' + getColor(limits
+                 [i] + 1) + '"></i> ' +
+                                 limits
+              [i] + (limits
+              [i + 1] ? '&ndash;' + limits
+              [i + 1] + '<br>' : '+');
+                    }
+
+    return div;
+};
+    legend.addTo(mymap)
+    var info = L.control();
+
+    info.onAdd = function (map) {
+           this._div = L.DomUtil.create('div', 'info'); 
+           this.update();
+           return this._div;
+      };
+
+info.update = function (props) {
+    this._div.innerHTML = '<h4>Total confirmed cases</h4>' +  (props ?
+        '<b>' + props.name + '</b><br />' +props.total_cases + ' cases'
+        : 'Hover over a country');
+};
+
+info.addTo(mymap);
+function highlightFeature(e) {
+    var layer = e.target;
+    layer.setStyle({
+        weight: 5,
+        color: '#666',
+        dashArray: '',
+        fillOpacity: 0.7
+    });
+
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+    }
+    info.update(layer.feature.properties);
+}
+function resetHighlight(e) {
+    myGeo.resetStyle(e.target);
+    info.update();
+}
+function zoomToFeature(e) {
+    map.fitBounds(e.target.getBounds());
+}
+function chosenCountry(country){
+  const svg = d3.select("#canvas").append("svg").attr('width',1000).attr('height',600);
+  const marginBar = {top:40,right:20,bottom:70,left:100}
+  const gWidthBar = 1000-marginBar.left-marginBar.right
+  const gHeightBar = 500-marginBar.top-marginBar.bottom
+  const gbar = svg.append("g")
+                .attr("width",gWidthBar)
+                .attr("height",gHeightBar)
+                .attr("transform",`translate(${marginBar.left}, ${marginBar.top})`)
+  const gxbar = gbar.append("g")
+                  .attr("transform",`translate(0,${gHeightBar})`)
+  const gybar = gbar.append("g")
+  const barRect = gbar.selectAll("#bar")
+  d3.csv("owid-covid-data.csv")
+  .then(covidData=>{
+  var newCases = {}
+  var newDeaths = {}
+  covidData.forEach(element => {
+    if(!element["iso_code"].includes("OWID")){
+      if(country==="all"||country===element["location"]){
+        if(!Number.isNaN(parseInt(element["new_cases"])))
+          if(!(element["date"] in newCases)){
+            newCases[element["date"]] = parseInt(element["new_cases"])
+          }
+          else{
+            newCases[element["date"]] += parseInt(element["new_cases"])
+          }
+        if(!Number.isNaN(parseInt(element["new_deaths"]))){
+         if(!(element["date"] in newDeaths))
+          newDeaths[element["date"]] = parseInt(element["new_deaths"])
+         else
+          newDeaths[element["date"]] += parseInt(element["new_deaths"])
+      }
+    }
+    }
+    else{}
+          
+  });
+  var deathKeys  = Object.keys(newDeaths)
+  var deathValues = Object.values(newDeaths)
+  var caseKeys = Object.keys(newCases)
+  var caseValues = Object.values(newCases)
+  deathKeys.sort()
+  const xbar =  d3.scaleTime()
+                  .domain([new Date(deathKeys
+              [0])
+                  ,new Date(deathKeys
+              [deathKeys
+              .length-1])])
+                  .range([0,gWidthBar])
+  const ybar = d3.scaleLinear()
+                 .domain([0,d3.max(deathValues)])
+                 .range([gHeightBar,0])
+  barRect.data(deathKeys)
+                  .enter().append("rect")
+                  .attr("width",gWidthBar/deathKeys
+              .length)
+                  .attr("height",(d,i)=>gHeightBar-ybar(newDeaths[d]))
+                  .attr("x",(d,i)=>xbar(new Date(d)) - (gWidthBar/deathKeys
+              .length)/2)
+                  .attr("y",(d,i)=>ybar(newDeaths[d]))
+                  .attr("fill","#ea5545")
+  const xAxisBar = d3.axisBottom(xbar)
+  const yAxisBar = d3.axisLeft(ybar).ticks(20)
+  gbar.append("text")             
+      .attr("transform",
+      `translate(${gWidthBar/2+130},${gHeightBar + marginBar.top + 20})`)
+      .style("text-anchor", "middle")
+      .text("Date");
+  gbar.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - marginBar.left+40)
+      .attr("x",0 - (gHeightBar / 2))
+      .style("text-anchor", "middle")
+      .text("New Deaths"); 
+  gbar.append("text")
+      .attr("x", (gWidthBar / 2))             
+      .attr("y", 0 - (marginBar.top / 2))
+      .attr("text-anchor", "middle")  
+      .style("font-size", "18px") 
+      .text(country.toUpperCase());
+  gxbar.call(xAxisBar)
+  gybar.call(yAxisBar)
+  const svg2 = d3.select("#canvas").append("svg").attr('width',1300).attr('height',600);
+  // Add a clipPath: everything out of this area won't be drawn.
+         
+
+  const marginLine = {top:40,right:20,bottom:70,left:100}
+  const gWidthLine = 1000-marginLine.left-marginLine.right
+  const gHeightLine = 500-marginLine.top-marginLine.bottom
+  const gline = svg2.append("g")
+                .attr("width",gWidthLine)
+                .attr("height",gHeightLine)
+                .attr("transform",`translate(${marginLine.left}, ${marginLine.top})`)
+  const gxline = gline.append("g")
+                  .attr("transform",`translate(0,${gHeightBar})`)
+  const gyline = gline.append("g")
+  const newG = gline.append("g")
+  const line = newG.selectAll("#line")
+  var filteredData = []
+  topCountries = ["United States"
+              ,"India"  
+              ,"Brazil" 
+              ,"France"
+              ,"Turkey"
+              ,"Russia"
+              ,"United Kingdom"
+              ,"Italy"       
+              ,"Argentina"
+              ,"Colombia"]
+  covidData.forEach(element => {
+    if(country==="all"){
+        if(topCountries.includes(element["location"])){
+          filteredData.push(element)           
+        }
+    }else if(country===element["location"]){
+      filteredData.push(element)
+    }
+  });
+  
+  var myData = d3.group(filteredData, d => d.location)
+  var xline = d3.scaleTime()
+    .domain(d3.extent(filteredData, function(d) { 
+      return new Date(d.date); }))
+    .range([ 0, gWidthLine]);
+  var yline = d3.scaleLinear()
+              .domain([0, d3.max(filteredData, d=> parseInt(d.new_cases))])
+              .range([ gHeightLine, 0 ])
+  line
+      .data(myData)
+      .enter()
+      .append("path")
+        .attr("fill", "none")
+        .attr("stroke", function(d){
+          return findColor(d[0],country)
+        })
+        .attr("stroke-width", 1.5)
+        .attr("d", function(d){
+          return d3.line()
+            .x(function(d) { 
+                return xline(new Date(d.date)); 
+            })
+            .y(function(d) { 
+              if(!Number.isNaN(parseInt(d.new_cases)))
+                  return yline(parseInt(d.new_cases));
+              else 
+                  return yline(0) 
+            })
+            (d[1])
+        })
+        
+  line.data(myData)
+      .enter()
+      .append("text")
+      .attr("fill", d=>findColor(d[0],country))
+      .attr('alignment-baseline', 'middle')
+      .style("font-size","10px")
+      .attr("x",gWidthLine)
+      .attr("dx",'0.5em')
+      .attr("y",function(d) { 
+              if(!Number.isNaN(parseInt(d[1][d[1].length-1].new_cases)))
+                  return yline(parseInt(d[1][d[1].length-1].new_cases));
+              else 
+                  return yline(0) 
+            })
+      .html(d=>d[0])
+  
+  lines = line
+  const xAxisLine = d3.axisBottom(xline)
+  const yAxisLine = d3.axisLeft(yline).ticks(20)
+  gline.append("text")             
+      .attr("transform",
+      `translate(${gWidthBar/2+130},${gHeightBar + marginBar.top + 20})`)
+      .style("text-anchor", "middle")
+      .text("Date");
+  gline.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - marginBar.left+40)
+      .attr("x",0 - (gHeightBar / 2))
+      .style("text-anchor", "middle")
+      .text("New Cases"); 
+  gline.append("text")
+      .attr("x", (gWidthBar / 2))             
+      .attr("y", 0 - (marginBar.top / 2))
+      .attr("text-anchor", "middle")  
+      .style("font-size", "18px") 
+      .text(country==="all"?`Top 10`:
+      country.toUpperCase());
+  gxline.call(xAxisLine)
+  gyline.call(yAxisLine)
+})
+}
+function findColor(country,all){
+  if(all==="all")
+      return country ===  "United States"? '#ea5545' :
+             country === "India"  ? '#bdcf32' :
+             country === "Brazil" ? '#ace5c7' :
+             country === "France"  ? '#ede15b' :
+             country === "Turkey"   ? '#f46a9b' :
+             country === "Russia"   ? '#87bc45' :
+             country === "United Kingdom"   ? '#836dc5' :
+             country === "Italy"?"#b33dc6":                 
+             country === "Argentina"?"#ef9b20":
+             country === "Colombia"?"#86d87f":
+             '#27aeef';
+  else
+      return "#ea5545"
+}
+$('select').on('change', function() {
+  $("#canvas").remove()
+  var canv = $("<div>").attr("id","canvas")
+  $("body").append(canv)
+  chosenCountry(this.value)
+});
+chosenCountry("all")
+    </script>
+        <style>
+          .legend { text-align: left; line-height: 18px; color: #555; } 
+          .legend i { width: 18px; height: 15px; float: left; margin-right: 8px; opacity: 0.7; }
+          .info {
+                padding: 10px 10px;
+                font: 14px/16px Arial, Helvetica, sans-serif;
+                background: white;
+                background: rgba(255,255,255,0.8);
+                box-shadow: 0 0 15px rgb(0 0 0 / 20%);
+                border-radius: 18px;
+              }   
+          </style>
+</html>

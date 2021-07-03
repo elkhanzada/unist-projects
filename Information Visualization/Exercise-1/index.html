@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <title>Exercise-1</title>
+</head>
+<body> 
+    <div id='canvas'>
+
+    </div> 
+</body>
+<script>
+    const enemyData = []
+    var y = 0;
+    for(var i = 0; i<100;i++){
+        if(i<20)
+            y = 10
+        else if(i%20==0)
+            y+=50
+        enemyData.push({width: 60, height: 40,cy:y,fill:"orange"});
+    }
+    const svg = d3.select("#canvas").append("svg").attr('width',1450).attr('height',700).attr("stroke","black");
+    const holder = svg.append("rect").attr("width",100).attr("height",20).attr("x",500).attr('y',600).attr("fill",randColor());
+    const ball = svg.append("circle").attr("id","ball").attr("cx",550).attr('cy',450).attr("r",15).attr("fill",randColor());
+    const enemies = svg.selectAll("#enemy");
+    enemies.data(enemyData)
+           .enter().append("rect")
+           .attr("id","enemy")
+           .attr("width",(d)=>d.width)
+           .attr('height',(d)=>d.height)
+           .attr('x',(d,i)=>{
+            return 10+((i)%20+1)*65
+           })
+           .attr('y',(d) => d.cy)
+           .attr('fill',(d) => d.fill)
+const durationTime = 800
+
+setInterval(() => {
+    const cubicH = 1001*1001*1001
+    const cubicW = 1320*1320*1320
+    newPosY = 265+((Math.floor(Math.random()*cubicH))%1001)%300
+    newPosX = 10+(Math.floor(Math.random()*cubicW)%1320)
+    holder.transition().duration(durationTime).attr("x",newPosX).attr("fill",randColor())
+    d3.selectAll("#enemy").each(changeColor)   
+    ball.transition().duration(durationTime).attr("cx",parseInt(ball.attr("r"))*3+newPosX).attr("cy",parseInt(ball.attr("r"))+newPosY).attr("fill",randColor())
+},durationTime)
+function randColor() {
+  var hexadec = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += hexadec[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+function changeColor(d,i){
+    d3.select(this).transition().duration(durationTime).attr("fill",randColor())
+}
+    
+</script>   
+</html>

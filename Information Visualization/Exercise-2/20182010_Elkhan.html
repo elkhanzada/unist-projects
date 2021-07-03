@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <title>Exercise-2</title>
+</head>
+<body>
+    <div id="canvas">
+
+    </div>
+</body>
+    <script>
+        const svg = d3.select("#canvas").append("svg").attr('width',1550).attr('height',1500);
+        const marginBar = {top:40,right:20,bottom:70,left:100}
+        const gWidthBar = 600-marginBar.left-marginBar.right
+        const gHeightBar = 600-marginBar.top-marginBar.bottom
+        const marginLine = {top:gHeightBar+300,right:20,bottom:gHeightBar+10, left:200}
+        const gWidthLine =  gWidthBar
+        const gHeightLine = 600-marginLine.top-marginLine.bottom+2*gHeightBar
+        const gbar = svg.append("g")
+                     .attr("width",gWidthBar)
+                     .attr("height",gHeightBar)
+                     .attr("transform",`translate(${marginBar.left}, ${marginBar.top})`)
+        const gline = svg.append("g")
+                     .attr("width",gWidthLine)
+                     .attr("height",gHeightLine)
+                     .attr("transform",`translate(${marginLine.left}, ${marginLine.top})`)
+        const rect = gbar.selectAll("#bar")
+        const gxbar = gbar.append("g")
+                          .attr("transform",`translate(0,${gHeightBar})`)
+        const gybar = gbar.append("g")
+        const gxline = gline.append("g")
+                            .attr("transform",`translate(0,${gHeightLine})`)
+        const gyline = gline.append("g")
+        const line = gline.append("path")
+        
+        d3.csv('world_pop.csv')
+                .then(data => {
+                    const top15 = data.sort((a,b)=>{
+                        return d3.descending(a.Population/a['Area (sq. mi.)'],b.Population/b['Area (sq. mi.)'])
+                    }).slice(0,15)
+                    const ybar = d3.scaleBand()
+                                .domain(top15.map(d => d.Country))
+                                .range([0,gHeightBar])
+                                .paddingInner(0.1)
+                    const xbar = d3.scaleLinear()
+                                .domain([0,d3.max(top15,d => ((parseInt((d.Population/d['Area (sq. mi.)'])/1000))+1)*1000)])
+                                .range([0,750])
+                rect.data(top15)
+                    .enter().append("rect")
+                    .attr("width",(d,i)=>xbar(d.Population/d['Area (sq. mi.)']))
+                    .attr("height",(d,i)=>ybar.bandwidth())
+                    .attr("y",(d,i)=>ybar(d.Country))
+                    .attr("fill","blue")
+                const xAxisBar = d3.axisBottom(xbar).ticks(20)
+                const yAxisBar = d3.axisLeft(ybar)
+                gbar.append("text")             
+                    .attr("transform",
+                    `translate(${gWidthBar/2+130},${gHeightBar + marginBar.top + 20})`)
+                    .style("text-anchor", "middle")
+                    .text("Population density");
+                gbar.append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 0 - marginBar.left+30)
+                    .attr("x",0 - (gHeightBar / 2))
+                    .style("text-anchor", "middle")
+                    .text("Countries"); 
+                gbar.append("text")
+                   .attr("x", (gWidthBar / 2))             
+                   .attr("y", 0 - (marginBar.top / 2))
+                   .attr("text-anchor", "middle")  
+                   .style("font-size", "18px") 
+                   .text("Top 15 countries by their population density");
+
+                gxbar.call(xAxisBar)
+                gybar.call(yAxisBar)
+                });
+        d3.csv("world_co2.csv")
+          .then(data => {
+              var tData = [] 
+              data.forEach(element => {
+                  for (var k in element){
+                        obj = {}
+                      if(k!=='Year'){
+                        obj.year = parseInt(k)
+                        obj.emissions = parseFloat(element[k])
+                        tData.push(obj)
+                      }
+                  }
+                  
+              });
+              const xline = d3.scaleTime()
+                              .domain([new Date(d3.min(tData,d=>d.year-4),0,0), new Date(d3.max(tData,d=>d.year+10),0,0)])
+                              .range([0,gWidthLine])
+              const yline = d3.scaleLinear()
+                              .domain([0,d3.max(tData,d=>parseInt(d.emissions/1000)+1000)])
+                              .range([gHeightLine,0])
+        line.datum(tData)
+            .attr("fill", "none")
+            .attr("stroke", "red")
+            .attr("stroke-width", 1.8)
+            .attr("d", d3.line()
+                         .x(d =>xline(new Date(d.year,0,0)))
+                         .y(d => yline(d.emissions/1000))
+            )
+        const xAxisLine = d3.axisBottom(xline)
+        const yAxisLine = d3.axisLeft(yline).ticks(10)
+        gline.append("text")             
+                    .attr("transform",
+                    `translate(${gWidthLine/2},${gHeightLine + marginLine.top - gHeightBar-marginLine.left-50})`)
+                    .style("text-anchor", "middle")
+                    .text("Time (year)");
+        gline.append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 0 - marginLine.left+150)
+                    .attr("x",0 - (gHeightLine / 2))
+                    .style("text-anchor", "middle")
+                    .text("CO2 Emission (1000 kt)"); 
+        gline.append("text")
+                   .attr("x", (gWidthLine / 2))             
+                   .attr("y", 0 - (marginLine.top / 2)+360)
+                   .attr("text-anchor", "middle")  
+                   .style("font-size", "18px") 
+                   .text("Annual CO2 emissions");
+        gxline.call(xAxisLine)
+        gyline.call(yAxisLine)
+          }
+        )
+
+    </script>
+</html>
