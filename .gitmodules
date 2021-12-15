@@ -1,0 +1,6 @@
+[submodule "Software Engineering"]
+	path = Software Engineering
+	url = https://github.com/elkhanzada/movie-recommendation-app.git
+[submodule "Operating Systems"]
+	path = Operating Systems
+	url = https://github.com/elkhanzada/pintos.git
