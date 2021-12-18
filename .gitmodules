@@ -4,3 +4,6 @@
 [submodule "Operating Systems"]
 	path = Operating Systems
 	url = https://github.com/elkhanzada/pintos.git
+[submodule "Mobile Computing"]
+	path = Mobile Computing
+	url = https://github.com/elkhanzada/deepcat.git
