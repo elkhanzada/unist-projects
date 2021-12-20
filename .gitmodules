@@ -7,6 +7,3 @@
 [submodule "Mobile Computing"]
 	path = Mobile Computing
 	url = https://github.com/elkhanzada/deepcat.git
-[submodule "Database Systems"]
-	path = Database Systems
-	url = https://github.com/elkhanzada/sqlHomeWork.git
