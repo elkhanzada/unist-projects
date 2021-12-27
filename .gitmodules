@@ -10,3 +10,6 @@
 [submodule "Database Systems"]
 	path = Database Systems
 	url = https://github.com/elkhanzada/sqlHomeWork.git
+[submodule "Computer Vision"]
+	path = Computer Vision
+	url = https://github.com/elkhanzada/computer-vision.git
