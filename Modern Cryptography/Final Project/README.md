@@ -6,7 +6,7 @@
 pip install -r requirements.txt
 ```
 
-Run the server and go to http://localhost:8080/
+Run the server and go to http://localhost:8000/
 
 ```bash
 python manage.py runserver
