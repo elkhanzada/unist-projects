@@ -1,0 +1,17 @@
+name: toolkits
+channels:
+  - conda-forge
+  - pytorch
+  - nvidia
+dependencies:
+  - python==3.9
+  - nvidia::cudatoolkit=11.6
+  - pytorch::torchtext
+  - pytorch::pytorch==1.13.0
+  - pytorch::torchvision
+  - pytorch::torchaudio
+  - pip
+  - pip:
+      - matplotlib
+      - numpy
+      - pandas
